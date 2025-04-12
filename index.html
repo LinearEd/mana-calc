@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>MTG Landrechner (nur 40-Karten-Deck)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; 
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 1.2em;
+    }
+    label {
+      display: block;
+      margin-top: 1.2em;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      display: block;
+      width: 100%;
+      margin-top: 2em;
+      padding: 12px;
+      background-color: #007bff;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 2em;
+      background: #eef;
+      padding: 1em;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    .result p {
+      margin: 0.5em 0;
+      padding: 0.6em;
+      border-radius: 4px;
+    }
+    .total-lands {
+      background-color: #fff; 
+      font-weight: bold;
+      color: #000;
+    }
+    .white {
+      background-color: #f8f9fa;
+      color: #000;
+    }
+    .blue {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .black {
+      background-color: #343a40;
+      color: #fff;
+    }
+    .red {
+      background-color: #dc3545;
+      color: #fff;
+    }
+    .green {
+      background-color: #28a745;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>MTG-Landrechner</h1>
+  <h2>(Nur für 40-Karten-Decks)</h2>
+  
+  <p>
+    Trage hier ein, wie viele farbige Manasymbole (Pips) du in deinem 
+    40-Karten-Deck hast. Der Rechner geht standardmäßig von 
+    <strong>17 Ländern</strong> aus – ein gängiger Wert für ein 
+    Limited-Deck (Draft/Sealed).
+  </p>
+
+  <label for="whitePips">Weiße Pips:</label>
+  <input type="number" id="whitePips" min="0" value="0" oninput="checkInputs()" />
+
+  <label for="bluePips">Blaue Pips:</label>
+  <input type="number" id="bluePips" min="0" value="0" oninput="checkInputs()" />
+
+  <label for="blackPips">Schwarze Pips:</label>
+  <input type="number" id="blackPips" min="0" value="0" oninput="checkInputs()" />
+
+  <label for="redPips">Rote Pips:</label>
+  <input type="number" id="redPips" min="0" value="0" oninput="checkInputs()" />
+
+  <label for="greenPips">Grüne Pips:</label>
+  <input type="number" id="greenPips" min="0" value="0" oninput="checkInputs()" />
+
+  <button id="calculateButton" onclick="calculateLands()" disabled>Berechnen</button>
+
+  <div class="result" id="result" style="display: none;"></div>
+</div>
+
+<script>
+  // Standardanzahl Länder in einem 40-Karten-Deck
+  const TOTAL_LANDS_40 = 17;
+
+  // Aktiviert/Deaktiviert den Button abhängig davon,
+  // ob mindestens ein Pip angegeben ist.
+  function checkInputs() {
+    const whitePips = parseInt(document.getElementById('whitePips').value) || 0;
+    const bluePips  = parseInt(document.getElementById('bluePips').value) || 0;
+    const blackPips = parseInt(document.getElementById('blackPips').value) || 0;
+    const redPips   = parseInt(document.getElementById('redPips').value) || 0;
+    const greenPips = parseInt(document.getElementById('greenPips').value) || 0;
+    
+    const totalPips = whitePips + bluePips + blackPips + redPips + greenPips;
+    document.getElementById('calculateButton').disabled = (totalPips === 0);
+  }
+
+  function calculateLands() {
+    const whitePips = parseInt(document.getElementById('whitePips').value) || 0;
+    const bluePips  = parseInt(document.getElementById('bluePips').value) || 0;
+    const blackPips = parseInt(document.getElementById('blackPips').value) || 0;
+    const redPips   = parseInt(document.getElementById('redPips').value) || 0;
+    const greenPips = parseInt(document.getElementById('greenPips').value) || 0;
+
+    const totalPips = whitePips + bluePips + blackPips + redPips + greenPips;
+
+    // Wir verteilen standardmäßig 17 Länder:
+    let whiteLands = 0, blueLands = 0, blackLands = 0, redLands = 0, greenLands = 0;
+
+    if (totalPips > 0) {
+      whiteLands = whitePips > 0 
+        ? Math.round((TOTAL_LANDS_40 * whitePips) / totalPips) 
+        : 0;
+      blueLands  = bluePips > 0  
+        ? Math.round((TOTAL_LANDS_40 * bluePips)  / totalPips) 
+        : 0;
+      blackLands = blackPips > 0 
+        ? Math.round((TOTAL_LANDS_40 * blackPips) / totalPips) 
+        : 0;
+      redLands   = redPips > 0   
+        ? Math.round((TOTAL_LANDS_40 * redPips)   / totalPips) 
+        : 0;
+      greenLands = greenPips > 0 
+        ? Math.round((TOTAL_LANDS_40 * greenPips) / totalPips) 
+        : 0;
+    }
+
+    // Summe der (eventuell gerundeten) Länder:
+    let totalCalc = whiteLands + blueLands + blackLands + redLands + greenLands;
+
+    // Falls wir durch das Runden über 17 kommen, korrigieren wir:
+    if (totalCalc > TOTAL_LANDS_40) {
+      let diff = totalCalc - TOTAL_LANDS_40;
+
+      // Sortierte Liste nach Anzahl, damit wir evtl. "überzählige"
+      // Länder bei den größten zuerst abziehen. (kann man anpassen)
+      let landArray = [
+        { color: 'white', lands: whiteLands },
+        { color: 'blue',  lands: blueLands  },
+        { color: 'black', lands: blackLands },
+        { color: 'red',   lands: redLands   },
+        { color: 'green', lands: greenLands }
+      ];
+      // Absteigend sortieren:
+      landArray.sort((a, b) => b.lands - a.lands);
+
+      for (let i = 0; i < landArray.length && diff > 0; i++) {
+        if (landArray[i].lands > 0) {
+          landArray[i].lands--;
+          diff--;
+        }
+      }
+      // Zurückschreiben:
+      whiteLands = landArray.find(l => l.color === 'white').lands;
+      blueLands  = landArray.find(l => l.color === 'blue').lands;
+      blackLands = landArray.find(l => l.color === 'black').lands;
+      redLands   = landArray.find(l => l.color === 'red').lands;
+      greenLands = landArray.find(l => l.color === 'green').lands;
+      totalCalc  = TOTAL_LANDS_40;
+    }
+    
+    // Ergebnis-DIV
+    const resultDiv = document.getElementById('result');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `
+      <p class="total-lands">Gesamtanzahl Länder (Empfehlung): ${totalCalc}</p>
+      <p class="white">Weiße Länder: ${whiteLands}</p>
+      <p class="blue">Blaue Länder: ${blueLands}</p>
+      <p class="black">Schwarze Länder: ${blackLands}</p>
+      <p class="red">Rote Länder: ${redLands}</p>
+      <p class="green">Grüne Länder: ${greenLands}</p>
+    `;
+  }
+</script>
+</body>
+</html>
