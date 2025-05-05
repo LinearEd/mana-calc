@@ -130,6 +130,17 @@
     .close-button:hover {
       color: #ffcccc;
     }
+  
+    #cardResult .card {
+      display: inline-block;
+      margin: 10px;
+      text-align: center;
+    }
+    #cardResult .card img {
+      max-width: 146px;
+      height: auto;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -171,12 +182,6 @@
       alt="MTG Artwork" 
       onclick="openFullscreen()" />
   </div>
-  <h2>MTG-Kartensuche (Scryfall API)</h2>
-<div id="cardSearchSection">
-  <input type="text" id="cardSearchInput" placeholder="Kartennamen eingeben..." style="width: 100%; padding: 10px; font-size: 16px;" />
-  <button onclick="searchCard()" style="margin-top: 10px;">Suche starten</button>
-  <div id="cardResult" style="margin-top: 20px;"></div>
-</div>
 </div>
 
 <!-- Vollbild-Overlay, zunächst versteckt -->
@@ -186,47 +191,15 @@
     src="https://i.redd.it/uv0s0j917gre1.jpeg" 
     alt="MTG Artwork Groß" />
 </div>
+<hr style="margin: 40px 0;" />
+<h2>MTG-Kartensuche (Scryfall API)</h2>
+<div id="cardSearchSection">
+  <input type="text" id="cardSearchInput" placeholder="Kartennamen eingeben..." style="width: 100%; padding: 10px; font-size: 16px;" />
+  <button onclick="searchCard()" style="margin-top: 10px;">Suche starten</button>
+  <div id="cardResult" style="margin-top: 20px;"></div>
+</div>
 
 <script>
-    async function searchCard() {
-    const query = document.getElementById('cardSearchInput').value.trim();
-    const resultDiv = document.getElementById('cardResult');
-    resultDiv.innerHTML = '';
-
-    if (!query) {
-      resultDiv.innerHTML = '<p>Bitte gib einen Kartennamen ein.</p>';
-      return;
-    }
-
-    try {
-      const response = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`, {
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-
-      if (!data || !data.data || data.data.length === 0) {
-        resultDiv.innerHTML = '<p>Keine Karte gefunden.</p>';
-        return;
-      }
-
-      const card = data.data[0]; // erste gefundene Karte
-      const imageUrl = card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || '';
-
-      resultDiv.innerHTML = `
-        <p><strong>${card.name}</strong> (${card.set_name})</p>
-        ${imageUrl ? `<img src="${imageUrl}" alt="${card.name}" style="max-width: 100%; border-radius: 8px;" />` : ''}
-        <p>${card.type_line}</p>
-        <p>${card.oracle_text?.replace(/\n/g, '<br>') || ''}</p>
-        <p><small>Illustration: ${card.artist} &mdash; &copy; Wizards of the Coast</small></p>
-      `;
-    } catch (err) {
-      resultDiv.innerHTML = '<p>Fehler bei der Suche. Bitte später erneut versuchen.</p>';
-      console.error(err);
-    }
-  }
   // Standardanzahl Länder in einem 40-Karten-Deck
   const TOTAL_LANDS_40 = 17;
 
@@ -307,6 +280,55 @@
   }
   function closeFullscreen() {
     document.getElementById("fullscreenOverlay").style.display = "none";
+  }
+  
+  async function searchCard() {
+    const searchInput = document.getElementById('cardSearchInput');
+    const resultDiv = document.getElementById('cardResult');
+    const term = searchInput.value.trim();
+    
+    if (!term) {
+      resultDiv.innerHTML = '<p>Bitte gib einen Suchbegriff ein.</p>';
+      return;
+    }
+    
+    resultDiv.innerHTML = '<p>Suche läuft...</p>';
+    
+    try {
+      const response = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(term)}`);
+      const data = await response.json();
+      
+      if (!data.data || data.data.length === 0) {
+        resultDiv.innerHTML = '<p>Keine Karten gefunden.</p>';
+        return;
+      }
+      
+      // Limit to first 8 cards to avoid overwhelming the page
+      const cards = data.data.slice(0, 8);
+      let html = '';
+      
+      for (const card of cards) {
+        // Some cards have different layouts, check for image_uris
+        const imageUrl = card.image_uris ? card.image_uris.normal : 
+                        (card.card_faces && card.card_faces[0].image_uris ? 
+                         card.card_faces[0].image_uris.normal : '');
+        
+        if (imageUrl) {
+          html += `
+            <div class="card">
+              <img src="${imageUrl}" alt="${card.name}" />
+              <p>${card.name}</p>
+            </div>
+          `;
+        }
+      }
+      
+      resultDiv.innerHTML = html || '<p>Keine Bilder für diese Karten verfügbar.</p>';
+      
+    } catch (error) {
+      console.error('Fehler bei der Kartensuche:', error);
+      resultDiv.innerHTML = '<p>Es ist ein Fehler bei der Suche aufgetreten. Bitte versuche es später noch einmal.</p>';
+    }
   }
 </script>
 </body>
